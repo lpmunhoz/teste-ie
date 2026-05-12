@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teste de Inteligência Emocional</title>
+
+  <!-- Bibliotecas externas (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+  <style>
+    body{
+      font-family:Arial,sans-serif;
+      background:#f4f7fa;
+      margin:0;
+      color:#333;
+    }
+    .container{
+      max-width:800px;
+      margin:2rem auto;
+      background:#fff;
+      padding:2rem;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,.1);
+    }
+    h1, h2{ text-align:center; color:#2c3e50; }
+    label{ display:block; margin-bottom:.5rem; }
+    select{
+      width:100%;
+      padding:.5rem;
+      margin-bottom:1rem;
+    }
+    .btn{
+      display:block;
+      width:100%;
+      padding:.75rem;
+      background:#3498db;
+      color:#fff;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+      font-size:1rem;
+    }
+    .btn:hover{ background:#2980b9; }
+    .hidden{ display:none; }
+    .qr{ text-align:center; margin-top:1rem; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Teste de Inteligência Emocional</h1>
+
+    <form id="quizForm">
+      <div id="questions"></div>
+      <button type="submit" class="btn">Calcular Resultado</button>
+    </form>
+
+    <div id="result" class="hidden">
+      <h2>Seu Perfil</h2>
+      <canvas id="radarChart"></canvas>
+      <p id="summary"></p>
+      <button id="pdfBtn" class="btn">Baixar PDF</button>
+      <div id="qrCode" class="qr"></div>
+    </div>
+  </main>
+
+  <script>
+    /* ==== Perguntas ==== */
+    const questions = [
+      {text:"Consigo identificar a emoção que estou sentindo no momento?", dim:"autoconsciencia"},
+      {text:"Reconheço meus gatilhos emocionais?", dim:"autoconsciencia"},
+      {text:"Consigo manter a calma sob pressão?", dim:"autocontrole"},
+      {text:"Consigo ouvir críticas sem reagir defensivamente?", dim:"autocontrole"},
+      {text:"Percebo sinais não verbais dos outros?", dim:"empatia"},
+      {text:"Valido a emoção do outro antes de agir?", dim:"empatia"},
+      {text:"Resolvo conflitos de forma construtiva?", dim:"relacionamento"},
+      {text:"Admito meus erros e aprendo com eles?", dim:"relacionamento"}
+    ];
+
+    /* ==== Renderiza as perguntas ==== */
+    const container = document.getElementById('questions');
+    questions.forEach((q,i)=>{
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <label>${i+1}. ${q.text}</label>
+        <select id="q${i}">
+          <option value="1">Nunca</option>
+          <option value="2">Raramente</option>
+          <option value="3">De vez em quando</option>
+          <option value="4">Frequentemente</option>
+          <option value="5">Sempre</option>
+        </select>
+      `;
+      container.appendChild(div);
+    });
+
+    /* ==== Cálculo das pontuações ==== */
+    function calcular(){
+      const dims = {autoconsciencia:0, autocontrole:0, empatia:0, relacionamento:0};
+      questions.forEach((q,i)=>{
+        const val = parseInt(document.getElementById(`q${i}`).value);
+        dims[q.dim] += val;
+      });
+      // Cada dimensão tem 2 perguntas → máximo 10 pontos
+      const pct = {};
+      for(const key in dims){
+        pct[key] = (dims[key]/10)*100;   // converte para %
+      }
+      return pct;
+    }
+
+    /* ==== Classificação textual ==== */
+    function classifica(p){
+      if(p<=30) return "Baixo";
+      if(p<=60) return "Médio";
+      if(p<=80) return "Bom";
+      return "Excelente";
+    }
+
+    /* ==== Exibição do resultado ==== */
+    document.getElementById('quizForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      const scores = calcular();
+      document.getElementById('result').classList.remove('hidden');
+
+      // Gráfico Radar
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      new Chart(ctx,{
+        type:'radar',
+        data:{
+          labels:["Autoconsciência","Autocontrole","Empatia","Relacionamento"],
+          datasets:[{
+            label:"Pontuação %",
+            data:[scores.autoconsciencia,scores.autocontrole,scores.empatia,scores.relacionamento],
+            backgroundColor:"rgba(52,152,219,0.2)",
+            borderColor:"rgba(52,152,219,1)",
+            pointBackgroundColor:"rgba(52,152,219,1)"
+          }]
+        },
+        options:{scales:{r:{suggestedMin:0,suggestedMax:100}}}
+      });
+
+      // Texto resumido
+      const sum = document.getElementById('summary');
+      sum.innerHTML = `
+        Autoconsciência: ${scores.autoconsciencia.toFixed(0)}% (${classifica(scores.autoconsciencia)})<br>
+        Autocontrole: ${scores.autocontrole.toFixed(0)}% (${classifica(scores.autocontrole)})<br>
+        Empatia: ${scores.empatia.toFixed(0)}% (${classifica(scores.empatia)})<br>
+        Relacionamento: ${scores.relacionamento.toFixed(0)}% (${classifica(scores.relacionamento)})
+      `;
+
+      // QR Code (link da própria página)
+      new QRCode(document.getElementById('qrCode'),{
+        text: window.location.href,
+        width:128,
+        height:128
+      });
+
+      // PDF
+      document.getElementById('pdfBtn').onclick = () => {
+        const {jsPDF}=window.jspdf;
+        const pdf = new jsPDF();
+        pdf.setFontSize(16);
+        pdf.text('Relatório de Inteligência Emocional',105,20,{align:'center'});
+        const lines = [
+          `Autoconsciência: ${scores.autoconsciencia.toFixed(0)}% (${classifica(scores.autoconsciencia)})`,
+          `Autocontrole: ${scores.autocontrole.toFixed(0)}% (${classifica(scores.autocontrole)})`,
+          `Empatia: ${scores.empatia.toFixed(0)}% (${classifica(scores.empatia)})`,
+          `Relacionamento: ${scores.relacionamento.toFixed(0)}% (${classifica(scores.relacionamento)})`
+        ];
+        pdf.text(lines,10,30);
+        pdf.save('relatorio_IE.pdf');
+      };
+    });
+  </script>
+</body>
+</html>
