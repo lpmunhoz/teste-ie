@@ -1,179 +1,382 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Teste de Inteligência Emocional</title>
-
-  <!-- Bibliotecas externas (CDN) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-
-  <style>
-    body{
-      font-family:Arial,sans-serif;
-      background:#f4f7fa;
-      margin:0;
-      color:#333;
-    }
-    .container{
-      max-width:800px;
-      margin:2rem auto;
-      background:#fff;
-      padding:2rem;
-      border-radius:8px;
-      box-shadow:0 2px 8px rgba(0,0,0,.1);
-    }
-    h1, h2{ text-align:center; color:#2c3e50; }
-    label{ display:block; margin-bottom:.5rem; }
-    select{
-      width:100%;
-      padding:.5rem;
-      margin-bottom:1rem;
-    }
-    .btn{
-      display:block;
-      width:100%;
-      padding:.75rem;
-      background:#3498db;
-      color:#fff;
-      border:none;
-      border-radius:4px;
-      cursor:pointer;
-      font-size:1rem;
-    }
-    .btn:hover{ background:#2980b9; }
-    .hidden{ display:none; }
-    .qr{ text-align:center; margin-top:1rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Inteligência Emocional - Versão Corrigida</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background: #f5f7ff;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #4361ee;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .question-container {
+            margin-bottom: 25px;
+            display: none;
+        }
+        
+        .question-container.active {
+            display: block;
+        }
+        
+        .block-title {
+            color: #3f37c9;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .option-btn {
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        
+        .option-btn:hover {
+            border-color: #4361ee;
+            background: #f0f4ff;
+        }
+        
+        .option-btn.selected {
+            background: #4361ee;
+            color: white;
+            border-color: #4361ee;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-prev {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+        
+        .btn-next {
+            background: #4361ee;
+            color: white;
+        }
+        
+        .btn-submit {
+            background: #28a745;
+            color: white;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6c757d;
+            font-weight: bold;
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .results h2 {
+            color: #4361ee;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .scores {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .score-value {
+            font-weight: bold;
+            color: #4361ee;
+        }
+        
+        .total-score {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #28a745;
+        }
+    </style>
 </head>
 <body>
-  <main class="container">
-    <h1>Teste de Inteligência Emocional</h1>
-
-    <form id="quizForm">
-      <div id="questions"></div>
-      <button type="submit" class="btn">Calcular Resultado</button>
-    </form>
-
-    <div id="result" class="hidden">
-      <h2>Seu Perfil</h2>
-      <canvas id="radarChart"></canvas>
-      <p id="summary"></p>
-      <button id="pdfBtn" class="btn">Baixar PDF</button>
-      <div id="qrCode" class="qr"></div>
+    <div class="container">
+        <h1>Teste de Inteligência Emocional</h1>
+        
+        <div class="progress" id="progress">Questão 1 de 25</div>
+        
+        <div id="questions"></div>
+        
+        <div class="controls">
+            <button class="btn btn-prev" id="prevBtn" disabled>Voltar</button>
+            <button class="btn btn-next" id="nextBtn" disabled>Próxima</button>
+            <button class="btn btn-submit" id="submitBtn" style="display: none;">Finalizar Teste</button>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Seus Resultados</h2>
+            <div class="scores" id="scores"></div>
+            <div class="total-score" id="totalScore"></div>
+        </div>
     </div>
-  </main>
 
-  <script>
-    /* ==== Perguntas ==== */
-    const questions = [
-      {text:"Consigo identificar a emoção que estou sentindo no momento?", dim:"autoconsciencia"},
-      {text:"Reconheço meus gatilhos emocionais?", dim:"autoconsciencia"},
-      {text:"Consigo manter a calma sob pressão?", dim:"autocontrole"},
-      {text:"Consigo ouvir críticas sem reagir defensivamente?", dim:"autocontrole"},
-      {text:"Percebo sinais não verbais dos outros?", dim:"empatia"},
-      {text:"Valido a emoção do outro antes de agir?", dim:"empatia"},
-      {text:"Resolvo conflitos de forma construtiva?", dim:"relacionamento"},
-      {text:"Admito meus erros e aprendo com eles?", dim:"relacionamento"}
-    ];
-
-    /* ==== Renderiza as perguntas ==== */
-    const container = document.getElementById('questions');
-    questions.forEach((q,i)=>{
-      const div = document.createElement('div');
-      div.innerHTML = `
-        <label>${i+1}. ${q.text}</label>
-        <select id="q${i}">
-          <option value="1">Nunca</option>
-          <option value="2">Raramente</option>
-          <option value="3">De vez em quando</option>
-          <option value="4">Frequentemente</option>
-          <option value="5">Sempre</option>
-        </select>
-      `;
-      container.appendChild(div);
-    });
-
-    /* ==== Cálculo das pontuações ==== */
-    function calcular(){
-      const dims = {autoconsciencia:0, autocontrole:0, empatia:0, relacionamento:0};
-      questions.forEach((q,i)=>{
-        const val = parseInt(document.getElementById(`q${i}`).value);
-        dims[q.dim] += val;
-      });
-      // Cada dimensão tem 2 perguntas → máximo 10 pontos
-      const pct = {};
-      for(const key in dims){
-        pct[key] = (dims[key]/10)*100;   // converte para %
-      }
-      return pct;
-    }
-
-    /* ==== Classificação textual ==== */
-    function classifica(p){
-      if(p<=30) return "Baixo";
-      if(p<=60) return "Médio";
-      if(p<=80) return "Bom";
-      return "Excelente";
-    }
-
-    /* ==== Exibição do resultado ==== */
-    document.getElementById('quizForm').addEventListener('submit',e=>{
-      e.preventDefault();
-      const scores = calcular();
-      document.getElementById('result').classList.remove('hidden');
-
-      // Gráfico Radar
-      const ctx = document.getElementById('radarChart').getContext('2d');
-      new Chart(ctx,{
-        type:'radar',
-        data:{
-          labels:["Autoconsciência","Autocontrole","Empatia","Relacionamento"],
-          datasets:[{
-            label:"Pontuação %",
-            data:[scores.autoconsciencia,scores.autocontrole,scores.empatia,scores.relacionamento],
-            backgroundColor:"rgba(52,152,219,0.2)",
-            borderColor:"rgba(52,152,219,1)",
-            pointBackgroundColor:"rgba(52,152,219,1)"
-          }]
-        },
-        options:{scales:{r:{suggestedMin:0,suggestedMax:100}}}
-      });
-
-      // Texto resumido
-      const sum = document.getElementById('summary');
-      sum.innerHTML = `
-        Autoconsciência: ${scores.autoconsciencia.toFixed(0)}% (${classifica(scores.autoconsciencia)})<br>
-        Autocontrole: ${scores.autocontrole.toFixed(0)}% (${classifica(scores.autocontrole)})<br>
-        Empatia: ${scores.empatia.toFixed(0)}% (${classifica(scores.empatia)})<br>
-        Relacionamento: ${scores.relacionamento.toFixed(0)}% (${classifica(scores.relacionamento)})
-      `;
-
-      // QR Code (link da própria página)
-      new QRCode(document.getElementById('qrCode'),{
-        text: window.location.href,
-        width:128,
-        height:128
-      });
-
-      // PDF
-      document.getElementById('pdfBtn').onclick = () => {
-        const {jsPDF}=window.jspdf;
-        const pdf = new jsPDF();
-        pdf.setFontSize(16);
-        pdf.text('Relatório de Inteligência Emocional',105,20,{align:'center'});
-        const lines = [
-          `Autoconsciência: ${scores.autoconsciencia.toFixed(0)}% (${classifica(scores.autoconsciencia)})`,
-          `Autocontrole: ${scores.autocontrole.toFixed(0)}% (${classifica(scores.autocontrole)})`,
-          `Empatia: ${scores.empatia.toFixed(0)}% (${classifica(scores.empatia)})`,
-          `Relacionamento: ${scores.relacionamento.toFixed(0)}% (${classifica(scores.relacionamento)})`
+    <script>
+        // Dados do teste - estrutura clara e simples
+        const questionsData = [
+            // Autoconsciência (5 perguntas)
+            { block: "Autoconsciência", text: "Consigo reconhecer e dar nome a um sentimento exato no momento em que ele ocorre." },
+            { block: "Autoconsciência", text: "Tenho clareza sobre as minhas próprias forças e fraquezas profissionais no atendimento." },
+            { block: "Autoconsciência", text: "Percebo os sinais físicos do meu corpo (como tensão muscular ou respiração ofegante) antes de perder o controle sob pressão." },
+            { block: "Autoconsciência", text: "Tenho consciência de como o meu humor e as minhas atitudes afetam os meus colegas de equipe e os clientes." },
+            { block: "Autoconsciência", text: "Consigo identificar os \"gatilhos\" específicos e as armadilhas da mente que me tiram do sério no trabalho." },
+            
+            // Autocontrole (5 perguntas)
+            { block: "Autocontrole", text: "Consigo manter a calma e pensar com clareza mesmo diante da pressão de clientes difíceis ou situações estressantes." },
+            { block: "Autocontrole", text: "Utilizo técnicas, como a respiração profunda ou pausas, para recuperar o domínio da mente quando sinto raiva ou ansiedade." },
+            { block: "Autocontrole", text: "Diante de uma crítica dura, evito reagir na defensiva ou de forma agressiva." },
+            { block: "Autocontrole", text: "Consigo me livrar rapidamente de um estado de espírito negativo em vez de ficar remoendo o problema." },
+            { block: "Autocontrole", text: "Contenho meus impulsos emocionais para não tomar atitudes precipitadas das quais eu possa me arrepender." },
+            
+            // Automotivação (5 perguntas)
+            { block: "Automotivação", text: "Utilizo minhas emoções como combustível para me manter focado e atingir minhas metas." },
+            { block: "Automotivação", text: "Diante de obstáculos ou falhas no trabalho, consigo me manter otimista e focar na busca por soluções." },
+            { block: "Automotivação", text: "Supero facilmente os sentimentos de frustração e não deixo que afetem o meu desempenho no próximo atendimento." },
+            { block: "Automotivação", text: "Tenho iniciativa para resolver problemas e buscar a excelência sem precisar ser cobrado constantemente." },
+            { block: "Automotivação", text: "Encaro as mudanças nas rotinas, sistemas ou perfis de clientes com flexibilidade e atitude construtiva." },
+            
+            // Empatia (5 perguntas)
+            { block: "Empatia", text: "Tento ativamente enxergar a situação pela perspectiva do cliente ou colega, mesmo quando discordo deles." },
+            { block: "Empatia", text: "Presto atenção aos sinais não verbais (tom de voz, expressões faciais, postura) para entender o que a outra pessoa realmente sente." },
+            { block: "Empatia", text: "Ouço ativamente as pessoas, sem interromper ou julgar, para compreender a verdadeira necessidade delas." },
+            { block: "Empatia", text: "Percebo quando um colega de equipe está sob estresse ou aflição e procuro oferecer apoio apropriado." },
+            { block: "Empatia", text: "Costumo validar os sentimentos da outra pessoa (ex: \"Entendo que você esteja frustrado\") antes de tentar resolver a questão técnica." },
+            
+            // Habilidades Sociais (5 perguntas)
+            { block: "Habilidades Sociais", text: "Trato as divergências no trabalho promovendo conversas difíceis de forma construtiva, buscando soluções em vez de evitar o conflito." },
+            { block: "Habilidades Sociais", text: "Consigo influenciar positivamente o clima do ambiente de trabalho, conectando pessoas e fortalecendo a equipe." },
+            { block: "Habilidades Sociais", text: "Utilizo a comunicação para expressar minhas ideias e sentimentos de forma clara, sem agredir ou culpar o outro." },
+            { block: "Habilidades Sociais", text: "Colaboro de forma eficaz com meus colegas, criando sinergia para alcançarmos as metas coletivas sob pressão." },
+            { block: "Habilidades Sociais", text: "Lido de maneira diplomática e hábil para acalmar os ânimos de pessoas difíceis em momentos de crise." }
         ];
-        pdf.text(lines,10,30);
-        pdf.save('relatorio_IE.pdf');
-      };
-    });
-  </script>
+
+        // Estado da aplicação
+        let currentQuestion = 0;
+        let answers = new Array(questionsData.length).fill(null); // Array com 25 posições
+        
+        // Elementos DOM
+        const questionsDiv = document.getElementById('questions');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressDiv = document.getElementById('progress');
+        const resultsDiv = document.getElementById('results');
+        const scoresDiv = document.getElementById('scores');
+        const totalScoreDiv = document.getElementById('totalScore');
+
+        // Criar todas as questões
+        function createQuestions() {
+            questionsData.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-container';
+                if (index === 0) questionDiv.classList.add('active');
+                
+                questionDiv.innerHTML = `
+                    <div class="block-title">${q.block}</div>
+                    <div class="question-text">${index + 1}. ${q.text}</div>
+                    <div class="options">
+                        <div class="option-btn" data-value="5">Sempre (5 pontos)</div>
+                        <div class="option-btn" data-value="4">Frequentemente (4 pontos)</div>
+                        <div class="option-btn" data-value="3">Às vezes (3 pontos)</div>
+                        <div class="option-btn" data-value="2">Raramente (2 pontos)</div>
+                        <div class="option-btn" data-value="1">Nunca (1 ponto)</div>
+                    </div>
+                `;
+                
+                // Adicionar eventos aos botões
+                const optionBtns = questionDiv.querySelectorAll('.option-btn');
+                optionBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Remover seleção anterior
+                        optionBtns.forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        
+                        // Salvar resposta
+                        answers[index] = parseInt(btn.dataset.value);
+                        
+                        // Habilitar próximo botão
+                        updateNavigation();
+                    });
+                });
+                
+                questionsDiv.appendChild(questionDiv);
+            });
+        }
+
+        // Atualizar navegação
+        function updateNavigation() {
+            progressDiv.textContent = `Questão ${currentQuestion + 1} de ${questionsData.length}`;
+            
+            // Botões de navegação
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (currentQuestion < questionsData.length - 1) {
+                nextBtn.disabled = answers[currentQuestion] === null;
+                submitBtn.style.display = 'none';
+                nextBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+                submitBtn.disabled = answers[currentQuestion] === null;
+            }
+            
+            // Mostrar/esconder questões
+            const questionContainers = document.querySelectorAll('.question-container');
+            questionContainers.forEach((container, index) => {
+                container.classList.toggle('active', index === currentQuestion);
+                
+                // Restaurar seleção se já respondida
+                if (answers[index] !== null) {
+                    const btns = container.querySelectorAll('.option-btn');
+                    btns.forEach(btn => {
+                        if (parseInt(btn.dataset.value) === answers[index]) {
+                            btn.classList.add('selected');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Calcular e mostrar resultados
+        function showResults() {
+            // Agrupar pontuações por bloco
+            const blockScores = {
+                "Autoconsciência": 0,
+                "Autocontrole": 0,
+                "Automotivação": 0,
+                "Empatia": 0,
+                "Habilidades Sociais": 0
+            };
+            
+            let totalScore = 0;
+            
+            // Calcular pontuações
+            questionsData.forEach((q, index) => {
+                const score = answers[index] || 0; // Se não respondida, conta como 0
+                blockScores[q.block] += score;
+                totalScore += score;
+            });
+            
+            // Mostrar resultados por bloco
+            scoresDiv.innerHTML = '';
+            Object.entries(blockScores).forEach(([block, score]) => {
+                const scoreItem = document.createElement('div');
+                scoreItem.className = 'score-item';
+                scoreItem.innerHTML = `
+                    <span><strong>${block}:</strong></span>
+                    <span class="score-value">${score} pontos</span>
+                `;
+                scoresDiv.appendChild(scoreItem);
+            });
+            
+            // Mostrar pontuação total
+            totalScoreDiv.textContent = `Pontuação Total: ${totalScore} pontos`;
+            
+            // Mostrar resultados
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            createQuestions();
+            updateNavigation();
+            
+            // Eventos de navegação
+            prevBtn.addEventListener('click', () => {
+                if (currentQuestion > 0) {
+                    currentQuestion--;
+                    updateNavigation();
+                }
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                if (currentQuestion < questionsData.length - 1) {
+                    currentQuestion++;
+                    updateNavigation();
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                showResults();
+            });
+        });
+    </script>
 </body>
 </html>
+
